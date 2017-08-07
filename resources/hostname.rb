@@ -170,8 +170,8 @@ action :set do
     # suppress EC2 config service from setting our hostname
     ec2_config_xml = 'C:\Program Files\Amazon\Ec2ConfigService\Settings\config.xml'
     cookbook_file ec2_config_xml do
-      source 'config.xml'
-      cookbook 'chef_hostname'
+      source "config.xml"
+      cookbook "chef_hostname"
       only_if { ::File.exist? ec2_config_xml }
     end
 
@@ -181,13 +181,14 @@ action :set do
         $sysInfo = Get-WmiObject -Class Win32_ComputerSystem
         $sysInfo.Rename("#{new_resource.hostname}")
       EOH
+      notifies :request_reboot, "reboot[setting hostname]"
       not_if { Socket.gethostbyname(Socket.gethostname).first == new_resource.hostname }
       notifies :request_reboot, 'reboot[setting hostname]'
     end
 
     # reboot because $windows
-    reboot 'setting hostname' do
-      reason 'chef setting hostname'
+    reboot "setting hostname" do
+      reason "chef setting hostname"
       action :nothing
       only_if { new_resource.windows_reboot }
     end
